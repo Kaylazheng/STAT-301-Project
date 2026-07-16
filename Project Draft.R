@@ -1,0 +1,5 @@
+redwine_data <- read.csv("winequality-red.csv", sep = ";",head = TRUE)
+str(redwine_data)
+head(redwine_data)
+sum(is.na(redwine_data))
+colSums(is.na(redwine_data))
