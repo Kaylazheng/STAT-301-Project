@@ -4,6 +4,7 @@
 # ============================================================
 
 library(tidyverse)
+library(corrplot)
 
 # Run the data preparation script to create wine_data
 source("code/01_import_clean_merge.R")
@@ -351,42 +352,65 @@ round(correlation_matrix, 2)
 
 
 # ============================================================
-# 14. Correlations With Quality
+# 14. Correlation Heatmap
 # ============================================================
 
-quality_correlations <- correlation_matrix[, "quality"]
-
-quality_correlations <- sort(
-  quality_correlations,
-  decreasing = TRUE
+corrplot(
+  correlation_matrix,
+  method = "color",
+  type = "upper",
+  tl.col = "black",
+  tl.cex = 0.7,
+  addCoef.col = "black",
+  number.cex = 0.5
 )
 
-quality_correlations
-
 
 # ============================================================
-# 15. Optional: Save Figures
+# 15. Save Figures
 # ============================================================
 
-# Before running this section, make sure a figures folder exists.
+ggsave(
+  "figures/quality_by_wine_type.png",
+  plot = quality_by_type_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-# ggsave(
-#   filename = "figures/quality_distribution.png",
-#   plot = quality_distribution_plot,
-#   width = 8,
-#   height = 5
-# )
+ggsave(
+  "figures/alcohol_vs_quality.png",
+  plot = alcohol_quality_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-# ggsave(
-#   filename = "figures/quality_by_type.png",
-#   plot = quality_by_type_plot,
-#   width = 8,
-#   height = 5
-# )
+ggsave(
+  "figures/volatile_acidity_vs_quality.png",
+  plot = volatile_acidity_quality_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
 
-# ggsave(
-#   filename = "figures/alcohol_quality_relationship.png",
-#   plot = alcohol_quality_plot,
-#   width = 8,
-#   height = 5
-# )
+png(
+  "figures/correlation_heatmap.png",
+  width = 1800,
+  height = 1500,
+  res = 200
+)
+
+corrplot(
+  correlation_matrix,
+  method = "color",
+  type = "upper",
+  tl.col = "black",
+  tl.cex = 0.7,
+  addCoef.col = "black",
+  number.cex = 0.5
+)
+
+dev.off()
+
+
