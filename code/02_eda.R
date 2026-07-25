@@ -200,7 +200,25 @@ alcohol_quality_plot
 
 
 # ============================================================
-# 9. Relationship Between Volatile Acidity and Quality
+# 9. Alcohol-Quality Correlation by Wine Type
+# ============================================================
+
+alcohol_quality_by_type <- wine_data %>%
+  group_by(wine_type) %>%
+  summarise(
+    n = n(),
+    correlation = cor(
+      alcohol,
+      quality,
+      use = "complete.obs"
+    )
+  )
+
+alcohol_quality_by_type
+
+
+# ============================================================
+# 10. Relationship Between Volatile Acidity and Quality
 # ============================================================
 
 volatile_acidity_quality_plot <- ggplot(
@@ -231,7 +249,7 @@ volatile_acidity_quality_plot
 
 
 # ============================================================
-# 10. Relationship Between Sulphates and Quality
+# 11. Relationship Between Sulphates and Quality
 # ============================================================
 
 sulphates_quality_plot <- ggplot(
@@ -262,7 +280,7 @@ sulphates_quality_plot
 
 
 # ============================================================
-# 11. Relationship Between Density and Quality
+# 12. Relationship Between Density and Quality
 # ============================================================
 
 density_quality_plot <- ggplot(
@@ -293,7 +311,7 @@ density_quality_plot
 
 
 # ============================================================
-# 12. Relationship Between Residual Sugar and Quality
+# 13. Relationship Between Residual Sugar and Quality
 # ============================================================
 
 residual_sugar_quality_plot <- ggplot(
@@ -320,11 +338,48 @@ residual_sugar_quality_plot <- ggplot(
   ) +
   theme_minimal()
 
-residual_sugar_quality_plot
 
 
 # ============================================================
-# 13. Correlation Matrix for Continuous Variables
+# 13A. Distribution of Main Predictors
+# ============================================================
+
+main_predictor_boxplots <- wine_data %>%
+  select(
+    alcohol,
+    `volatile acidity`,
+    sulphates,
+    density,
+    `residual sugar`
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "variable",
+    values_to = "value"
+  ) %>%
+  ggplot(
+    aes(
+      x = variable,
+      y = value
+    )
+  ) +
+  geom_boxplot() +
+  facet_wrap(
+    ~ variable,
+    scales = "free"
+  ) +
+  labs(
+    title = "Distributions of Main Continuous Predictors",
+    x = NULL,
+    y = "Value"
+  ) +
+  theme_minimal()
+
+main_predictor_boxplots
+
+
+# ============================================================
+# 14. Correlation Matrix for Continuous Variables
 # ============================================================
 
 wine_numeric <- wine_data %>%
@@ -352,7 +407,7 @@ round(correlation_matrix, 2)
 
 
 # ============================================================
-# 14. Correlation Heatmap
+# 15. Correlation Heatmap
 # ============================================================
 
 corrplot(
@@ -367,8 +422,85 @@ corrplot(
 
 
 # ============================================================
-# 15. Save Figures
+# 16. Correlation with the Binary Higher-Quality Outcome
 # ============================================================
+
+wine_logistic_numeric <- wine_data %>%
+  select(
+    `fixed acidity`,
+    `volatile acidity`,
+    `citric acid`,
+    `residual sugar`,
+    chlorides,
+    `free sulfur dioxide`,
+    `total sulfur dioxide`,
+    density,
+    pH,
+    sulphates,
+    alcohol,
+    higher_quality
+  )
+
+higher_quality_correlations <- cor(
+  wine_logistic_numeric,
+  use = "complete.obs"
+)[, "higher_quality"]
+
+higher_quality_correlations <-
+  higher_quality_correlations[
+    names(higher_quality_correlations) != "higher_quality"
+  ]
+
+higher_quality_correlations <- sort(
+  higher_quality_correlations,
+  decreasing = TRUE
+)
+
+round(higher_quality_correlations, 2)
+
+
+# ============================================================
+# 17. Plot Correlations with Higher Quality
+# ============================================================
+
+higher_quality_correlation_data <- tibble(
+  variable = names(higher_quality_correlations),
+  correlation = as.numeric(higher_quality_correlations)
+)
+
+higher_quality_correlation_plot <-
+  higher_quality_correlation_data %>%
+  ggplot(
+    aes(
+      x = reorder(variable, correlation),
+      y = correlation
+    )
+  ) +
+  geom_col() +
+  coord_flip() +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  labs(
+    title = "Correlation of Wine Characteristics with Higher Quality",
+    x = "Wine Characteristic",
+    y = "Correlation with Higher Quality"
+  ) +
+  theme_minimal()
+
+higher_quality_correlation_plot
+
+
+# ============================================================
+# 18. Save Figures
+# ============================================================
+
+dir.create(
+  "figures",
+  showWarnings = FALSE,
+  recursive = TRUE
+)
 
 ggsave(
   "figures/quality_by_wine_type.png",
@@ -409,6 +541,70 @@ corrplot(
   tl.cex = 0.7,
   addCoef.col = "black",
   number.cex = 0.5
+)
+
+ggsave(
+  "figures/quality_distribution.png",
+  plot = quality_distribution_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/quality_boxplot.png",
+  plot = quality_boxplot,
+  width = 7,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/sulphates_vs_quality.png",
+  plot = sulphates_quality_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/density_vs_quality.png",
+  plot = density_quality_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/residual_sugar_vs_quality.png",
+  plot = residual_sugar_quality_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/main_predictor_boxplots.png",
+  plot = main_predictor_boxplots,
+  width = 10,
+  height = 7,
+  dpi = 300
+)
+
+ggsave(
+  "figures/higher_quality_correlations.png",
+  plot = higher_quality_correlation_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+ggsave(
+  "figures/higher_quality_correlations.png",
+  plot = higher_quality_correlation_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
 )
 
 dev.off()
