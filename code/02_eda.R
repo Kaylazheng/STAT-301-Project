@@ -119,11 +119,27 @@ alcohol_quality_plot <- ggplot(
 
 alcohol_quality_plot
 
+alcohol_quality_boxplot <- ggplot(
+  wine_data,
+  aes(
+    x = factor(quality),
+    y = alcohol
+  )
+) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Alcohol Content by Wine Quality",
+    x = "Quality Score",
+    y = "Alcohol Content"
+  ) +
+  theme_minimal()
+
+alcohol_quality_boxplot
+
 
 # ============================================================
 # 6. Relationship Between Volatile Acidity and Quality
 # ============================================================
-
 volatile_acidity_quality_plot <- ggplot(
   wine_data,
   aes(
@@ -148,12 +164,28 @@ volatile_acidity_quality_plot <- ggplot(
 
 volatile_acidity_quality_plot
 
+volatile_acidity_quality_boxplot <- ggplot(
+  wine_data,
+  aes(
+    x = factor(quality),
+    y = `volatile acidity`
+  )
+) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Volatile Acidity by Wine Quality",
+    x = "Quality Score",
+    y = "Volatile Acidity"
+  ) +
+  theme_minimal()
+
+volatile_acidity_quality_boxplot
+
 
 
 # ============================================================
 # 7. Relationship Between Density and Quality
 # ============================================================
-
 density_quality_plot <- ggplot(
   wine_data,
   aes(
@@ -177,6 +209,23 @@ density_quality_plot <- ggplot(
   theme_minimal()
 
 density_quality_plot
+
+density_quality_boxplot <- ggplot(
+  wine_data,
+  aes(
+    x = factor(quality),
+    y = density
+  )
+) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Density by Wine Quality",
+    x = "Quality Score",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+density_quality_boxplot
 
 
 # ============================================================
@@ -323,54 +372,81 @@ dir.create(
   recursive = TRUE
 )
 
-# Quality distribution
+# 1. Quality distribution
 ggsave(
-  "figures/quality_distribution.png",
+  filename = "figures/quality_distribution.png",
   plot = quality_distribution_plot,
   width = 8,
   height = 5,
   dpi = 300
 )
 
-# Alcohol vs quality
+# 2. Alcohol vs quality: jittered scatterplot
 ggsave(
-  "figures/alcohol_vs_quality.png",
+  filename = "figures/alcohol_vs_quality.png",
   plot = alcohol_quality_plot,
   width = 8,
   height = 5,
   dpi = 300
 )
 
-# Volatile acidity vs quality
+# 3. Alcohol by quality: boxplot
 ggsave(
-  "figures/volatile_acidity_vs_quality.png",
+  filename = "figures/alcohol_by_quality_boxplot.png",
+  plot = alcohol_quality_boxplot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+# 4. Volatile acidity vs quality: jittered scatterplot
+ggsave(
+  filename = "figures/volatile_acidity_vs_quality.png",
   plot = volatile_acidity_quality_plot,
   width = 8,
   height = 5,
   dpi = 300
 )
 
-# Density vs quality
+# 5. Volatile acidity by quality: boxplot
 ggsave(
-  "figures/density_vs_quality.png",
+  filename = "figures/volatile_acidity_by_quality_boxplot.png",
+  plot = volatile_acidity_quality_boxplot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+# 6. Density vs quality: jittered scatterplot
+ggsave(
+  filename = "figures/density_vs_quality.png",
   plot = density_quality_plot,
   width = 8,
   height = 5,
   dpi = 300
 )
 
-# Predictor distributions
+# 7. Density by quality: boxplot
 ggsave(
-  "figures/main_predictor_boxplots.png",
+  filename = "figures/density_by_quality_boxplot.png",
+  plot = density_quality_boxplot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+# 8. Distributions of the three predictors
+ggsave(
+  filename = "figures/main_predictor_boxplots.png",
   plot = main_predictor_boxplots,
   width = 10,
   height = 7,
   dpi = 300
 )
 
-# Correlation heatmap
+# 9. Correlation heatmap
 png(
-  "figures/correlation_heatmap.png",
+  filename = "figures/correlation_heatmap.png",
   width = 1800,
   height = 1500,
   res = 200
@@ -388,9 +464,9 @@ corrplot(
 
 dev.off()
 
-# Correlations with the binary higher-quality outcome
+# 10. Correlations with the binary higher-quality outcome
 ggsave(
-  "figures/higher_quality_correlations.png",
+  filename = "figures/higher_quality_correlations.png",
   plot = higher_quality_correlation_plot,
   width = 8,
   height = 5,
