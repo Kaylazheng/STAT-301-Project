@@ -2,6 +2,8 @@ library(broom)
 library(tidyverse)
 library(car)
 library(knitr)
+library(modelr)
+
 
 ## Model 2: Logistic Regression Model
 ## Research Question
@@ -124,22 +126,47 @@ tidy(logit_interaction_av, exponentiate = TRUE, conf.int = TRUE) %>%
 # volatile acidity increases
 anova(logit_model, logit_interaction_av, test = "Chisq")
 
+## bin volatile acidity into groups so we can color by it
 va_levels <- quantile(wine_data$`volatile acidity`, probs = c(0.1, 0.5, 0.9))
 
 pred_grid <- expand.grid(
-  alcohol = seq(min(wine_data$alcohol), max(wine_data$alcohol), 
+  alcohol = seq(min(wine_data$alcohol), 
+                max(wine_data$alcohol), 
                 length.out = 100),
   `volatile acidity` = va_levels
 )
-pred_grid$pred_prob <- predict(logit_interaction_av, newdata = pred_grid, 
-                               type = "response")
-pred_grid$va_label <- factor(pred_grid$`volatile acidity`, 
-                             labels = c("Low VA", "Median VA", "High VA"))
 
-ggplot(pred_grid, aes(x = alcohol, y = pred_prob, color = va_label)) +
+pred_grid <- pred_grid %>%
+  add_predictions(logit_interaction_av, 
+                  var = "pred_logit_interaction", 
+                  type = "response") %>%
+  mutate(
+    va_group = factor(`volatile acidity`, levels = va_levels,
+                      labels = c("Low VA", "Median VA", "High VA"))
+  )
+
+
+wine_data <- wine_data %>%
+  add_predictions(logit_interaction_av, 
+                  var = "pred_logit_interaction", 
+                  type = "response")
+
+## plot
+logit_interaction_plot <-
+  pred_grid %>%
+  ggplot(aes(x = alcohol, y = pred_logit_interaction, color = va_group)) +
   geom_line(linewidth = 1) +
-  labs(x = "Alcohol (%)", 
-       y = "Predicted probability of high quality", 
-       color = "Volatile Acidity") +
-  theme_minimal()
+  labs(
+    title = "Logistic Regression with Interaction",
+    x = "Alcohol (%)",
+    y = "Predicted Probability of High Quality",
+    color = "Volatile Acidity"
+  ) +
+  theme(
+    text = element_text(size = 10.5),
+    plot.title = element_text(face = "bold"),
+    axis.title = element_text(face = "bold"),
+    legend.title = element_text(face = "bold")
+  )
 
+logit_interaction_plot
