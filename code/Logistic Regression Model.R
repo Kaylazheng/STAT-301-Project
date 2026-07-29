@@ -49,6 +49,8 @@ logit_model %>%
   knitr::kable()
 
 ## Step 5: Residual plot
+
+# raw residual
 logit_model %>%
   augment() %>%
   mutate(
@@ -70,7 +72,23 @@ logit_model %>%
 # Lower line: wines where higher_quality = 0 → residual = 0 − fitted prob 
 # (negative, shrinking toward 0 as fitted prob → 0)
 
-plot(logit_model,1)
+# pearson residual
+logit_model %>%
+  augment() %>%
+  mutate(
+    pred_prob = logit_model$fitted,
+    resid_pearson = residuals(logit_model, type = "pearson")
+  ) %>%
+  ggplot(aes(x = pred_prob, y = resid_pearson)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(se = FALSE, color = "blue") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Pearson Residuals vs Fitted Probabilities",
+    x = "Fitted probability",
+    y = "Pearson residual"
+  ) +
+  theme_minimal()
 
 y_resid <- residuals(logit_model)
 x_fit <- logit_model$fitted
@@ -91,4 +109,37 @@ summary(glm(
 ))
 # Dispersion parameter for quasibinomial family taken to be 0.998
 # essentially 1, confirming the binomial variance assumption is appropriate.
-  
+
+## Step 7: Interaction model 
+logit_interaction_av <- glm(
+  higher_quality ~ alcohol * `volatile acidity`,
+  data = wine_data,
+  family = binomial
+)
+
+tidy(logit_interaction_av, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate_if(is.numeric, round, 3)
+# The interaction term was statistically significant
+# the positive effect of alcohol on high-quality odds becomes stronger as 
+# volatile acidity increases
+anova(logit_model, logit_interaction_av, test = "Chisq")
+
+va_levels <- quantile(wine_data$`volatile acidity`, probs = c(0.1, 0.5, 0.9))
+
+pred_grid <- expand.grid(
+  alcohol = seq(min(wine_data$alcohol), max(wine_data$alcohol), 
+                length.out = 100),
+  `volatile acidity` = va_levels
+)
+pred_grid$pred_prob <- predict(logit_interaction_av, newdata = pred_grid, 
+                               type = "response")
+pred_grid$va_label <- factor(pred_grid$`volatile acidity`, 
+                             labels = c("Low VA", "Median VA", "High VA"))
+
+ggplot(pred_grid, aes(x = alcohol, y = pred_prob, color = va_label)) +
+  geom_line(linewidth = 1) +
+  labs(x = "Alcohol (%)", 
+       y = "Predicted probability of high quality", 
+       color = "Volatile Acidity") +
+  theme_minimal()
+
